@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace dataAccess;
+namespace dataAccess.Models;
 
 public partial class MyDbContext : DbContext
 {

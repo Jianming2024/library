@@ -1,5 +1,6 @@
 using api;
-using Infrastructure.Postgres.Scaffolding;
+using dataAccess;
+//using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
