@@ -1,12 +1,13 @@
-# fly.toml app configuration file generated for librarydemo-jm on 2025-09-19T15:04:45+02:00
+# fly.toml app configuration file generated for libraryidk on 2025-09-19T16:17:37+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'librarydemo-jm'
+app = 'libraryidk'
 primary_region = 'arn'
 
 [build]
+  dockerfile = './Dockerfile'
 
 [http_service]
   internal_port = 8080
