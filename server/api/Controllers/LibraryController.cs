@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace api.Controllers;
 
 [ApiController]
-public class LibaryController(ILibraryService libraryService) : ControllerBase       
+public class LibraryController(ILibraryService libraryService) : ControllerBase       
 {   
     [HttpGet(nameof(GetAuthors))]
     public async Task<List<AuthorDto>> GetAuthors()
