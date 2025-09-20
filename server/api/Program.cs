@@ -8,8 +8,9 @@ var appOptions = builder.Services.AddAppOptions(builder.Configuration);
 builder.Services.AddDbContext<MyDbContext>(opt =>
 {
     opt.UseNpgsql(appOptions.DbConnectionString );
-});
-
+}); 
+builder.Services.AddControllers();
+builder.Services.AddOpenApiDocument(); 
 builder.Services.AddCors();
 var app = builder.Build();
 app.UseCors(config => config.
@@ -18,6 +19,8 @@ app.UseCors(config => config.
     .AllowAnyOrigin()
     .SetIsOriginAllowed(x => true));
 
-app.MapGet("/", () => "Hello!");
+app.MapControllers();
+app.UseOpenApi();
+app.UseSwaggerUi();
 
 app.Run();

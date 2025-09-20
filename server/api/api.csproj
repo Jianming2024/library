@@ -4,6 +4,10 @@
     <ProjectReference Include="..\dataAccess\dataAccess.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NSwag.AspNetCore" Version="14.6.0" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
