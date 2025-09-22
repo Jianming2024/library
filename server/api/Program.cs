@@ -27,5 +27,5 @@ app.UseCors(config => config.
 app.MapControllers();
 app.UseOpenApi();
 app.UseSwaggerUi();
-
+app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts").GetAwaiter().GetResult();
 app.Run();
