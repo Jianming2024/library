@@ -1,26 +1,61 @@
-import {Outlet, useNavigate} from "react-router";
+import {NavLink, Outlet} from "react-router";
 
 export default function Home() {
-
-    const navigate = useNavigate();
-
     return <>
-        <Outlet />
-        <div className="dock">
-            <button onClick={() => navigate('books')}>
-                <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt"><polyline points="1 11 12 2 23 11" fill="none" stroke="currentColor" stroke-miterlimit="10" strokeWidth="2"></polyline><path d="m5,13v7c0,1.105.895,2,2,2h10c1.105,0,2-.895,2-2v-7" fill="none" stroke="currentColor" strokeLinecap="square" stroke-miterlimit="10" strokeWidth="2"></path><line x1="12" y1="22" x2="12" y2="18" fill="none" stroke="currentColor" strokeLinecap="square" stroke-miterlimit="10" strokeWidth="2"></line></g></svg>
-                <span className="dock-label">Books</span>
-            </button>
-
-            <button onClick={() => navigate('authors')}>
-                <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt"><polyline points="3 14 9 14 9 17 15 17 15 14 21 14" fill="none" stroke="currentColor" stroke-miterlimit="10" strokeWidth="2"></polyline><rect x="3" y="3" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" strokeLinecap="square" stroke-miterlimit="10" strokeWidth="2"></rect></g></svg>
-                <span className="dock-label">Authors</span>
-            </button>
-
-            <button onClick={() => navigate('genres')}>
-                <svg className="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="currentColor" strokeLinejoin="miter" strokeLinecap="butt"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeLinecap="square" stroke-miterlimit="10" strokeWidth="2"></circle><path d="m22,13.25v-2.5l-2.318-.966c-.167-.581-.395-1.135-.682-1.654l.954-2.318-1.768-1.768-2.318.954c-.518-.287-1.073-.515-1.654-.682l-.966-2.318h-2.5l-.966,2.318c-.581.167-1.135.395-1.654.682l-2.318-.954-1.768,1.768.954,2.318c-.287.518-.515,1.073-.682,1.654l-2.318.966v2.5l2.318.966c.167.581.395,1.135.682,1.654l-.954,2.318,1.768,1.768,2.318-.954c.518.287,1.073.515,1.654.682l.966,2.318h2.5l.966-2.318c.581-.167,1.135-.395,1.654-.682l2.318.954,1.768-1.768-.954-2.318c.287-.518.515-1.073.682-1.654l2.318-.966Z" fill="none" stroke="currentColor" strokeLinecap="square" stroke-miterlimit="10" strokeWidth="2"></path></g></svg>
-                <span className="dock-label">Genres</span>
-            </button>
+        <div className="min-h-screen bg-base-200">
+            {/* Top bar */}
+            <div className="navbar bg-base-100 border-b">
+                <div className="mx-auto max-w-7xl w-full px-4">
+                    <div className="flex items-center">
+                        <span className="btn btn-ghost text-xl">📚 Library Admin</span>
+                    </div>
+                </div>
+            </div>
+             {/*Main grid: sidebar + content */}
+            <div className="mx-auto max-w-7xl grid grid-cols-1 md:grid-cols-[220px_1fr] gap-4 p-4">
+                {/* Sidebar */}
+                <aside className="bg-base-100 border rounded-2xl p-3 h-fit sticky top-4">
+                    <nav className="menu gap-1">
+                        <li>
+                            <NavLink
+                                to="books"
+                                className={({ isActive }) =>
+                                    `btn btn-ghost justify-start ${isActive ? "btn-active" : ""}`
+                                }
+                            >
+                            <span className="mr-2" aria-hidden>📘</span>
+                                Books
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                to="authors"
+                                className={({ isActive }) =>
+                                    `btn btn-ghost justify-start ${isActive ? "btn-active" : ""}`
+                                }
+                            >
+                            <span className="mr-2" aria-hidden> 🖋️</span>
+                                Authors
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink
+                                to="genres"
+                                className={({ isActive }) =>
+                                    `btn btn-ghost justify-start ${isActive ? "btn-active" : ""}`
+                                }
+                            >
+                            <span className="mr-2" aria-hidden>🏷️</span>
+                                Genres
+                            </NavLink>
+                        </li>
+                    </nav>
+                </aside>
+                {/* Routed content (HomeDashboard / Books / Authors / Genres) */}
+                <main className="min-h-[70vh]">
+                    <Outlet />
+                </main>
+            </div>
         </div>
     </>
 }

@@ -2,7 +2,7 @@ import {LibraryClient} from "./generated-ts-client.ts";
 
 const isProduction = import.meta.env.PROD;
 
-const prod = "https://libraryidk.fly.dev";
+const prod = "https://librarydemo-jm.fly.dev";
 const dev = "http://localhost:5102";
 
 

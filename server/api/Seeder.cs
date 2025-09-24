@@ -29,15 +29,30 @@ public class Seeder(MyDbContext ctx): ISeeder
         };
         ctx.Books.Add(book);
         ctx.SaveChanges();
-        var genre = new Genre()
+        
+        // set several default genres
+        var genreNames = new[]
+        {
+            "Thriller",
+            "Fantasy",
+            "Science Fiction",
+            "Mystery",
+            "Romance",
+            "Non-Fiction",
+            "Historical",
+            "Horror",
+            "Young Adult",
+            "Classics"
+        };
+        var genres = genreNames.Select(name => new Genre
         {
             Createdat = DateTime.UtcNow,
-            Id = "1",
-            Name = "thriller"
-        };
-        ctx.Genres.Add(genre);
+            Id = Guid.NewGuid().ToString(),
+            Name = name
+        }).ToList();
+
+        ctx.Genres.AddRange(genres);
         ctx.SaveChanges();
-        
     }
 }
 public interface ISeeder

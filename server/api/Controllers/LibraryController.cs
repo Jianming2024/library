@@ -44,4 +44,9 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
         return await libraryService.DeleteBook(bookId);
     } 
     
+    [HttpPost(nameof(CreateAuthor))]
+    public async Task<AuthorDto> CreateAuthor([FromBody]CreateAuthorDto dto)
+    {
+        return await libraryService.CreateAuthor(dto);
+    }
 }

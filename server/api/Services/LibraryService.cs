@@ -60,4 +60,34 @@ public class LibraryService(MyDbContext dbctx) : ILibraryService
         return new BookDto(book);       
     }
     
+    public async Task<AuthorDto> CreateAuthor(CreateAuthorDto dto)
+    {
+        Validator.ValidateObject(dto, new ValidationContext(dto), true);
+        var author = new Author()
+        {
+            Name = dto.Name,
+            Createdat = DateTime.UtcNow,
+            Id = Guid.NewGuid().ToString()
+        };
+        dbctx.Authors.Add(author);
+        await dbctx.SaveChangesAsync();
+        return new AuthorDto(author);
+    }
+
+    public async Task<AuthorDto> UpdateAuthor(UpdateAuthorDto dto)
+    {
+        Validator.ValidateObject(dto, new ValidationContext(dto), true);
+    
+        var author = dbctx.Authors.First(a => a.Id == dto.AuthorIdForLookupReference);
+        if (author is null)
+            throw new KeyNotFoundException($"Author '{dto.AuthorIdForLookupReference}' not found.");
+
+        // Update allowed fields (do NOT change primary key!)
+        if (!string.IsNullOrWhiteSpace(dto.NewName) && !string.Equals(author.Name, dto.NewName, StringComparison.Ordinal))
+            author.Name = dto.NewName;
+     
+        await dbctx.SaveChangesAsync();
+        return new AuthorDto(author);
+    }
+    
 }

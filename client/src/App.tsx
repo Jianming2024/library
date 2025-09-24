@@ -2,7 +2,7 @@ import {useEffect} from 'react'
 import {libraryApi} from "./baseUrl"
 import {useAtom} from "jotai";
 import {allAuthorsAtom, allBooksAtom, allGenresAtom} from "./atoms.ts";
-import {createBrowserRouter, RouterProvider} from "react-router";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router";
 import Genres from "./Components/Genres.tsx";
 import Authors from "./Components/Authors.tsx";
 import Home from "./Components/Home.tsx";
@@ -29,6 +29,7 @@ function App() {
                 path: '',
                 element: <Home/>,
                 children: [
+                    { index: true, element: <Navigate to="books" replace /> },
                     {
                         path: 'books',
                         element: <Books/>
