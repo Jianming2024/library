@@ -1,6 +1,6 @@
 import {ApiException, type BookDto, type CreateBookDto} from "../generated-ts-client.ts";
 import {useAtom} from "jotai";
-import {allAuthorsAtom, allBooksAtom} from "../atoms.ts";
+import {allAuthorsAtom, allBooksAtom, allGenresAtom} from "../atoms.ts";
 import {libraryApi} from "../baseUrl.ts";
 import {useState} from "react";
 
@@ -61,8 +61,12 @@ function AssignAuthorsDropdown({
 
     async function toggle(id: string) {
         const next = new Set(selected);
-        next.has(id) ? next.delete(id) : next.add(id);
-        await onChange([...next]);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        await onChange(Array.from(next));
     }
 
     return (
