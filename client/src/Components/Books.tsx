@@ -2,132 +2,135 @@ import {ApiException, type BookDto, type CreateBookDto} from "../generated-ts-cl
 import {useAtom} from "jotai";
 import {allAuthorsAtom, allBooksAtom, allGenresAtom} from "../atoms.ts";
 import {libraryApi} from "../baseUrl.ts";
-import {useState} from "react";
+import {useRef, useState} from "react";
 
-export interface BookProps {
-    book: BookDto
+/*Icons*/
+function XIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    );
 }
-/* ---------- Small reusable multiselect dropdown with checkboxes ---------- */
-function MultiSelect({
-                         label,
-                         options,
-                         selectedIds,
-                         onToggle,
-                         emptyText = "No options",
-                     }: {
+function UsersIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-5.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  d="M15 19a6 6 0 0 0-12 0m12-11a4 4 0 1 1-8 0 4 4 0 0 1 8 0M19 8v6M22 11h-6"/>
+        </svg>
+    );
+}
+function GenresIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeWidth="1.5" d="M7 7h6l7 7-6 6-7-7V7zM7 7l-4 4 7 7"/>
+            <circle cx="10" cy="10" r="1.5"/>
+        </svg>
+    );
+}
+
+/*Chips (selected items) which used in top create bar and edit model*/
+function Chips({
+                   items,
+                   onRemove,
+                   emptyText,
+               }: {
+    items: { id: string; name: string }[];
+    onRemove: (id: string) => void;
+    emptyText: string;
+}) {
+    if (items.length === 0) {
+        return <div className="text-sm opacity-60">{emptyText}</div>;
+    }
+    return (
+        <div className="flex flex-wrap gap-2">
+            {items.map((it) => (
+                <span key={it.id} className="badge gap-1">
+          {it.name}
+                    <button className="btn btn-ghost btn-xs" onClick={() => onRemove(it.id)} aria-label={`remove ${it.name}`}>
+            <XIcon />
+          </button>
+        </span>
+            ))}
+        </div>
+    );
+}
+
+/*Icon MultiSelect-dropdown with close*/
+function IconMultiSelect({
+                             icon,
+                             label,
+                             options,
+                             selectedIds,
+                             onToggle,
+                         }: {
+    icon: React.ReactNode;
     label: string;
     options: { id: string; name: string }[];
     selectedIds: string[];
     onToggle: (id: string) => void;
-    emptyText?: string;
 }) {
     const selected = new Set(selectedIds);
-    return (
-        <details className="dropdown">
-            <summary className="btn btn-ghost gap-2">
-                <span className="badge">{selected.size}</span>
-                {label}
-            </summary>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-10 w-64 p-2 shadow">
-                {options.length === 0 && <li className="opacity-60 p-2">{emptyText}</li>}
-                {options.map((o) => (
-                    <li key={o.id}>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="checkbox checkbox-sm"
-                                checked={selected.has(o.id)}
-                                onChange={() => onToggle(o.id)}
-                            />
-                            <span className="truncate">{o.name}</span>
-                        </label>
-                    </li>
-                ))}
-            </ul>
-        </details>
-    );
-}
+    const detailsRef = useRef<HTMLDetailsElement>(null);
 
-/* ---------- Assign authors (left, by title) ---------- */
-function AssignAuthorsDropdown({
-                                   book,
-                                   onChange,
-                               }: {
-    book: BookDto;
-    onChange: (nextAuthorIds: string[]) => Promise<void>;
-}) {
-    const [authors] = useAtom(allAuthorsAtom);
-    const selected = new Set(book.authorsIds ?? []);
-
-    async function toggle(id: string) {
-        const next = new Set(selected);
-        if (next.has(id)) {
-            next.delete(id);
-        } else {
-            next.add(id);
-        }
-        await onChange(Array.from(next));
+    function close() {
+        if (detailsRef.current) detailsRef.current.open = false;
     }
 
     return (
-        <details className="dropdown">
-            <summary className="btn btn-ghost btn-xs gap-1">
-                {/* user-plus */}
-                <svg xmlns="http://www.w3.org/2000/svg" className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                          d="M15 19a6 6 0 0 0-12 0m12-11a4 4 0 1 1-8 0 4 4 0 0 1 8 0M19 8v6M22 11h-6"/>
-                </svg>
-                Assign
+        <details className="dropdown" ref={detailsRef}>
+            <summary className="btn btn-ghost gap-2">
+                {icon}
+                <span className="badge">{selected.size}</span>
+                <span className="hidden sm:inline">{label}</span>
             </summary>
-            <ul className="menu dropdown-content bg-base-100 rounded-box z-10 w-60 p-2 shadow">
-                <li className="menu-title opacity-60">Assign author(s)</li>
-                {authors.map((a) => (
-                    <li key={a.id}>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="checkbox checkbox-sm"
-                                checked={selected.has(a.id!)}
-                                onChange={() => toggle(a.id!)}
-                            />
-                            <span>{a.name}</span>
-                        </label>
-                    </li>
-                ))}
-                {authors.length === 0 && <li className="opacity-60 p-2">No authors available</li>}
-            </ul>
+
+            <div className="dropdown-content bg-base-100 rounded-box z-10 w-72 shadow">
+                <div className="p-2 border-b flex items-center justify-between">
+                    <span className="font-semibold text-sm">{label}</span>
+                    <button className="btn btn-ghost btn-xs" onClick={close} aria-label="Close">
+                        <XIcon />
+                    </button>
+                </div>
+                <ul className="menu p-2 max-h-64 overflow-auto">
+                    {options.length === 0 && <li className="opacity-60 p-2">No options</li>}
+                    {options.map((o) => (
+                        <li key={o.id}>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="checkbox checkbox-sm"
+                                    checked={selected.has(o.id)}
+                                    onChange={() => onToggle(o.id)}
+                                />
+                                <span className="truncate">{o.name}</span>
+                            </label>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </details>
     );
 }
 
-/* ---------- Row with edit/delete on the right ---------- */
-function BookRow({
-                     book,
-                     onEdit,
-                     onDelete,
-                     onAssignAuthors,
-                 }: {
+export interface BookRowProps {
     book: BookDto;
     onEdit: (book: BookDto) => void;
     onDelete: (book: BookDto) => void;
-    onAssignAuthors: (bookId: string, nextAuthorIds: string[]) => Promise<void>;
-}) {
-    const [authors] = useAtom(allAuthorsAtom);
-    const nameById = new Map(authors.map((a) => [a.id, a.name]));
-    const authorNames = (book.authorsIds ?? []).map((id) => nameById.get(id) ?? `#${id}`).join(", ");
+    authorNameById: (id: string) => string | undefined;
+}
+
+/*Book row (with edit/delete functions)*/
+function BookRow({ book, onEdit, onDelete, authorNameById }: BookRowProps) {
+    const authorNames = (book.authorsIds ?? []).map((id) => authorNameById(id) ?? `#${id}`).join(", ");
 
     return (
         <li className="p-5 list-row w-full flex items-start justify-between gap-3">
             <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                    <div className="font-bold">{book.title}</div>
-                    <AssignAuthorsDropdown
-                        book={book}
-                        onChange={(ids) => onAssignAuthors(book.id, ids)}
-                    />
-                </div>
+                <div className="font-bold">{book.title}</div>
                 <div className="text-xs uppercase font-semibold opacity-60">Pages: {book.pages}</div>
                 <div className="text-xs uppercase font-semibold opacity-60">By {authorNames || "—"}</div>
+                {book.genre && <div className="text-xs uppercase font-semibold opacity-60">Genre: {book.genre.name}</div>}
             </div>
 
             <div className="flex items-center gap-2">
@@ -135,14 +138,14 @@ function BookRow({
                     {/* pencil */}
                     <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M15.232 5.232a2.5 2.5 0 1 1 3.536 3.536L7.5 20.036 3 21l.964-4.5L15.232 5.232z"/>
+                              d="M15.232 5.232a2.5 2.5 0 1 1 3.536 3.536L7.5 20.036 3 21l.964-4.5L15.232 5.232z" />
                     </svg>
                 </button>
                 <button className="btn btn-ghost btn-sm text-error" onClick={() => onDelete(book)} aria-label="Delete book">
                     {/* trash */}
                     <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/>
+                              d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
                     </svg>
                 </button>
             </div>
@@ -150,33 +153,97 @@ function BookRow({
     );
 }
 
-/* ---------- Edit modal ---------- */
+/*Edit functions*/
 function EditBookModal({
                            initial,
                            onClose,
                            onSave,
                            saving,
+                           allAuthors,
+                           allGenres,
                        }: {
     initial: BookDto;
     onClose: () => void;
-    onSave: (title: string, pages: number) => Promise<void>;
+    onSave: (title: string, pages: number, authorsIds: string[], genreId?: string) => Promise<void>;
     saving: boolean;
+    allAuthors: { id: string; name: string }[];
+    allGenres: { id: string; name: string }[];
 }) {
     const [title, setTitle] = useState(initial.title);
     const [pages, setPages] = useState<number>(initial.pages);
+    const [authorsIds, setAuthorsIds] = useState<string[]>(initial.authorsIds ?? []);
+    const [genreIds, setGenreIds] = useState<string[]>(initial.genre?.id ? [initial.genre.id] : []);
+
+    function toggle(setter: (v: string[]) => void, ids: string[], id: string) {
+        setter(ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]);
+    }
 
     return (
         <dialog open className="modal">
             <div className="modal-box">
-                <h3 className="font-bold text-lg mb-3">Edit book</h3>
-                <div className="flex flex-col gap-3">
-                    <input className="input input-bordered" value={title} onChange={(e) => setTitle(e.target.value)} />
-                    <input className="input input-bordered" type="number" value={pages}
-                           onChange={(e) => setPages(parseInt(e.target.value || "0", 10))}/>
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-lg">Edit book</h3>
+                    <button className="btn btn-ghost btn-sm" onClick={onClose}><XIcon/></button>
                 </div>
+
+                <div className="flex flex-col gap-3">
+                    <input
+                        className="input input-bordered"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Title"
+                    />
+                    <input
+                        className="input input-bordered"
+                        type="number"
+                        value={pages}
+                        onChange={(e) => setPages(parseInt(e.target.value || "0", 10))}
+                        placeholder="Pages"
+                    />
+
+                    {/* icon multi-selects */}
+                    <div className="flex items-center gap-2">
+                        <IconMultiSelect
+                            icon={<UsersIcon />}
+                            label="Authors"
+                            options={allAuthors}
+                            selectedIds={authorsIds}
+                            onToggle={(id) => toggle(setAuthorsIds, authorsIds, id)}
+                        />
+                        <IconMultiSelect
+                            icon={<GenresIcon />}
+                            label="Genres"
+                            options={allGenres}
+                            selectedIds={genreIds}
+                            onToggle={(id) => toggle(setGenreIds, genreIds, id)}
+                        />
+                    </div>
+
+                    {/* chips */}
+                    <Chips
+                        items={allAuthors.filter((a) => authorsIds.includes(a.id))}
+                        onRemove={(id) => setAuthorsIds(authorsIds.filter((x) => x !== id))}
+                        emptyText="No authors selected"
+                    />
+                    <Chips
+                        items={allGenres.filter((g) => genreIds.includes(g.id))}
+                        onRemove={(id) => setGenreIds(genreIds.filter((x) => x !== id))}
+                        emptyText="No genre selected"
+                    />
+                    {genreIds.length > 1 && (
+                        <div className="text-xs opacity-70">
+                            Note: API accepts a single <code>genreId</code>. The first selected will be saved.
+                        </div>
+                    )}
+                </div>
+
                 <div className="modal-action">
                     <button className="btn" onClick={onClose}>Cancel</button>
-                    <button className="btn btn-primary" disabled={saving} onClick={() => onSave(title, pages)}>
+                    <button
+                        className="btn btn-primary"
+                        disabled={saving}
+                        onClick={() => onSave(title, pages, authorsIds, genreIds[0])}
+                    >
                         {saving ? "Saving…" : "Save"}
                     </button>
                 </div>
@@ -188,7 +255,9 @@ function EditBookModal({
     );
 }
 
-/* ---------- Page ---------- */
+/* =========================
+   Page
+   ========================= */
 export default function Books() {
     const [books, setBooks] = useAtom(allBooksAtom);
     const [authors] = useAtom(allAuthorsAtom);
@@ -196,7 +265,7 @@ export default function Books() {
 
     const [createBookForm, setCreateBookForm] = useState<CreateBookDto>({ title: "My amazing new book", pages: 1 });
     const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
-    const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]); // multiple as requested
+    const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
 
     const [savingCreate, setSavingCreate] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -204,11 +273,11 @@ export default function Books() {
     const [editing, setEditing] = useState<BookDto | null>(null);
     const [savingEdit, setSavingEdit] = useState(false);
 
-    function toggleAuthor(id: string) {
-        setSelectedAuthorIds((prev) => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
-    }
-    function toggleGenre(id: string) {
-        setSelectedGenreIds((prev) => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+    const authorOptions = authors.map((a) => ({ id: a.id!, name: a.name! }));
+    const genreOptions = genres.map((g) => ({ id: g.id!, name: g.name! }));
+
+    function toggleSelected(setter: (v: string[]) => void, arr: string[], id: string) {
+        setter(arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]);
     }
 
     async function onCreateBook() {
@@ -217,25 +286,23 @@ export default function Books() {
             setSavingCreate(true);
             setError(null);
 
-            // 1) create
+            // 1) create (title/pages)
             const created = await libraryApi.createBook(createBookForm);
 
-            // 2) immediately attach authors + first genre (your UpdateBookDto supports single genreId)
-            const genreId = selectedGenreIds[0]; // pick first if multiple selected
+            // 2) attach authors + first genre
             const updated = await libraryApi.updateBook({
                 bookIdForLookupReference: created.id,
                 newPageCout: created.pages,
                 newTitle: created.title,
                 authorsIds: selectedAuthorIds,
-                genreId: genreId,
+                genreId: selectedGenreIds[0],
             });
 
-            // 3) update local state and reset form
             setBooks([...books, updated]);
             setCreateBookForm((f) => ({ ...f, title: "" }));
             setSelectedAuthorIds([]);
             setSelectedGenreIds([]);
-        } catch (e: unknown) {
+        } catch (e) {
             const msg = (e as ApiException)?.message ?? "Create failed";
             setError(msg);
             console.error(e);
@@ -244,24 +311,7 @@ export default function Books() {
         }
     }
 
-    async function onAssignAuthors(bookId: string, nextAuthorIds: string[]) {
-        const current = books.find((b) => b.id === bookId);
-        if (!current) return;
-        try {
-            const updated = await libraryApi.updateBook({
-                bookIdForLookupReference: bookId,
-                newPageCout: current.pages,
-                newTitle: current.title,
-                authorsIds: nextAuthorIds,
-                genreId: current.genre?.id,
-            });
-            setBooks((prev) => prev.map((b) => (b.id === bookId ? updated : b)));
-        } catch (e) {
-            console.error("Assign authors failed", e);
-        }
-    }
-
-    async function onSaveEdit(title: string, pages: number) {
+    async function onSaveEdit(title: string, pages: number, authorsIds: string[], genreId?: string) {
         if (!editing) return;
         try {
             setSavingEdit(true);
@@ -269,8 +319,8 @@ export default function Books() {
                 bookIdForLookupReference: editing.id,
                 newPageCout: pages,
                 newTitle: title,
-                authorsIds: editing.authorsIds ?? [],
-                genreId: editing.genre?.id,
+                authorsIds,
+                genreId,
             });
             setBooks((prev) => prev.map((b) => (b.id === editing.id ? updated : b)));
             setEditing(null);
@@ -290,9 +340,11 @@ export default function Books() {
         }
     }
 
+    const authorNameById = (id: string) => authors.find((a) => a.id === id)?.name;
+
     return (
         <div className="space-y-4">
-            {/* Top create bar with multi-selects */}
+            {/* Top create bar with ICON multi-selects + chips */}
             <div className="card bg-base-100 shadow-xl sticky top-20 z-10">
                 <div className="card-body gap-3">
                     <h1 className="text-2xl font-semibold">Books</h1>
@@ -309,30 +361,22 @@ export default function Books() {
                             type="number"
                             placeholder="Pages"
                             className="input input-bordered w-28"
-                            onChange={(e) =>
-                                setCreateBookForm({
-                                    ...createBookForm,
-                                    pages: Number.parseInt(e.target.value || "0", 10),
-                                })
-                            }
+                            onChange={(e) => setCreateBookForm({ ...createBookForm, pages: Number.parseInt(e.target.value || "0", 10) })}
                         />
 
-                        {/* Multi-select Authors */}
-                        <MultiSelect
+                        <IconMultiSelect
+                            icon={<UsersIcon />}
                             label="Authors"
-                            options={authors.map(a => ({ id: a.id!, name: a.name! }))}
+                            options={authorOptions}
                             selectedIds={selectedAuthorIds}
-                            onToggle={toggleAuthor}
-                            emptyText="No authors available"
+                            onToggle={(id) => toggleSelected(setSelectedAuthorIds, selectedAuthorIds, id)}
                         />
-
-                        {/* Multi-select Genres (choose many, we attach the first due to API shape) */}
-                        <MultiSelect
+                        <IconMultiSelect
+                            icon={<GenresIcon />}
                             label="Genres"
-                            options={genres.map(g => ({ id: g.id!, name: g.name! }))}
+                            options={genreOptions}
                             selectedIds={selectedGenreIds}
-                            onToggle={toggleGenre}
-                            emptyText="No genres available"
+                            onToggle={(id) => toggleSelected(setSelectedGenreIds, selectedGenreIds, id)}
                         />
 
                         <button className="btn btn-primary" disabled={savingCreate} onClick={onCreateBook}>
@@ -340,21 +384,29 @@ export default function Books() {
                         </button>
                     </div>
 
+                    {/* Selected chips */}
+                    <Chips
+                        items={authorOptions.filter((a) => selectedAuthorIds.includes(a.id))}
+                        onRemove={(id) => setSelectedAuthorIds((prev) => prev.filter((x) => x !== id))}
+                        emptyText="No authors selected"
+                    />
+                    <Chips
+                        items={genreOptions.filter((g) => selectedGenreIds.includes(g.id))}
+                        onRemove={(id) => setSelectedGenreIds((prev) => prev.filter((x) => x !== id))}
+                        emptyText="No genre selected"
+                    />
+
                     {selectedGenreIds.length > 1 && (
                         <div className="text-xs opacity-70">
                             Note: your API accepts a single <code>genreId</code>. I’ll attach the <b>first</b> selected genre.
                         </div>
                     )}
 
-                    {error && (
-                        <div className="alert alert-error mt-1">
-                            <span>{error}</span>
-                        </div>
-                    )}
+                    {error && <div className="alert alert-error mt-1"><span>{error}</span></div>}
                 </div>
             </div>
 
-            {/* List with edit/delete */}
+            {/* List (no per-row assign UI anymore) */}
             <ul className="list bg-base-100 rounded-box shadow-md">
                 {books.map((b) => (
                     <BookRow
@@ -362,201 +414,23 @@ export default function Books() {
                         book={b}
                         onEdit={(bk) => setEditing(bk)}
                         onDelete={onDelete}
-                        onAssignAuthors={onAssignAuthors}
+                        authorNameById={authorNameById}
                     />
                 ))}
-                {books.length === 0 && (
-                    <li className="p-6 text-center opacity-60">No books yet — create one above.</li>
-                )}
+                {books.length === 0 && <li className="p-6 text-center opacity-60">No books yet — create one above.</li>}
             </ul>
 
+            {/* Edit modal (with authors/genres + chips) */}
             {editing && (
                 <EditBookModal
                     initial={editing}
                     onClose={() => setEditing(null)}
                     onSave={onSaveEdit}
                     saving={savingEdit}
+                    allAuthors={authorOptions}
+                    allGenres={genreOptions}
                 />
             )}
         </div>
     );
-
-/*export function Book(props: BookProps){
-    const [authors] = useAtom(allAuthorsAtom);
-    function getAuthorNamesFromIds(ids: string[]): string[] {
-        const filtered =  authors.filter(a => ids.includes(a.id!));
-        const names = filtered.map(f => f.name!);
-        return names;
-    }
-
-
-
-    /!*function updateBook(author: AuthorDto, book: BookDto) {
-        libraryApi.updateBook({
-            authorsIds: [author.id!],
-            bookIdForLookupReference: book.id!,
-            genreId: book.genre?.id!,
-            newTitle: book.title!,
-            newPageCout: book.pages!
-        }).then(r => {
-
-        }).catch(e => {
-
-        })
-    }*!/
-
-    return (
-        <li className="p-5 list-row w-full flex justify-between">
-            <div>
-                <div className="font-bold">{props.book.title}</div>
-                <div className="text-xs uppercase font-semibold opacity-60">Pages: {props.book.pages}</div>
-                <div className="text-xs uppercase font-semibold opacity-60">By {getAuthorNamesFromIds(props.book.authorsIds!).join(",")}</div>
-            </div>
-            <details className="dropdown dropdown-left">
-                <summary className="btn m-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                         stroke="currentColor" className="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/>
-                    </svg>
-                </summary>
-                <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                    <li>Assign author to book</li>
-                    {
-                        //todo next up
-                    }
-                </ul>
-            </details>
-        </li>
-    );
-}
-
-export default function Books() {
-    const [books, setAllBooks] = useAtom(allBooksAtom);
-    //const [authors] = useAtom(allAuthorsAtom);
-    const [createBookForm, setCreateBookForm] = useState<CreateBookDto>({
-        pages: 1,
-        title: "My amazing new book"
-    });
-
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    async function onCreateBook() {
-        if (!createBookForm.title?.trim()) return;
-        try {
-            setSaving(true);
-            setError(null);
-            const created = await libraryApi.createBook(createBookForm);
-            setAllBooks([...books, created]);
-            // reset title; keep last pages value for convenience
-            setCreateBookForm((f) => ({ ...f, title: "" }));
-        } catch (e: unknown) {
-            if (e instanceof ApiException) {
-                setError(e.message ?? "Create failed");
-                console.error(e);
-            } else {
-                setError("Create failed");
-            }
-        } finally {
-            setSaving(false);
-        }
-    }
-
-    return (
-        <div className="space-y-4">
-            {/!* Top toolbar (sticky) *!/}
-            <div className="card bg-base-100 shadow-xl sticky top-20 z-10">
-                <div className="card-body gap-3">
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                        <h1 className="text-2xl font-semibold">Books</h1>
-                    </div>
-
-                    {/!* Create book line *!/}
-                    <div className="flex items-center gap-2">
-                        <input
-                            value={createBookForm.title}
-                            placeholder="Title"
-                            className="input input-bordered flex-1 min-w-0"
-                            onChange={(e) => setCreateBookForm({ ...createBookForm, title: e.target.value })}
-                        />
-                        <input
-                            value={createBookForm.pages}
-                            type="number"
-                            placeholder="Pages"
-                            className="input input-bordered w-28"
-                            onChange={(e) =>
-                                setCreateBookForm({
-                                    ...createBookForm,
-                                    pages: Number.parseInt(e.target.value || "0", 10),
-                                })
-                            }
-                        />
-                        <button className="btn btn-primary" disabled={saving} onClick={onCreateBook}>
-                            {saving ? "Creating…" : "Create book"}
-                        </button>
-                    </div>
-
-                    {error && (
-                        <div className="alert alert-error mt-1">
-                            <span>{error}</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            {/!* List of books *!/}
-            <ul className="list bg-base-100 rounded-box shadow-md">
-                {books.map((b) => (
-                    <Book key={b.id} book={b} />
-                ))}
-                {books.length === 0 && (
-                    <li className="p-6 text-center opacity-60">No books yet — create one above.</li>
-                )}
-            </ul>
-        </div>
-    );
-
-    /!*return <>
-        <ul className="list bg-base-100 rounded-box shadow-md">
-            {
-                books.map(b => <Book key={b.id} book={b} />)
-            }
-        </ul>
-        {
-            books.map(b => {
-                return <div key={b.id}>
-                    {b.title}
-                    <details className="dropdown">
-                        <summary className="btn m-1">⚙️</summary>
-                        <ul className="menu dropdown-content bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
-                            {
-                                authors.map(a => {
-                                    return <li value={a.id} key={a.id}><input className="checkbox"
-                                                                              type="checkbox"/>{a.name}</li>
-                                })
-                            }
-                        </ul>
-                    </details>
-                </div>
-            })
-        }
-        <input value={createBookForm.title} placeholder="title" className="input"
-               onChange={e => setCreateBookForm({...createBookForm, title: e.target.value})}/>
-        <input value={createBookForm.pages} type="number" placeholder="page count" className="input"
-               onChange={e => setCreateBookForm({...createBookForm, pages: Number.parseInt(e.target.value)})}/>
-        <button className="btn btn-primary" onClick={() => {
-            libraryApi.createBook(createBookForm).then(r => {
-                setAllBooks([...books, r])
-                //toast("Book created succesfully")
-            }).catch(e => {
-                if (e instanceof ApiException) {
-                    console.log(JSON.stringify(e))
-                    //const problemDetails = JSON.parse(e.response) as ProblemDetails;
-                    //toast(problemDetails.title)
-                }
-            })
-        }}>Create book
-        </button>
-    </>*!/*/
 }

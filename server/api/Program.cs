@@ -9,6 +9,7 @@ var appOptions = builder.Services.AddAppOptions(builder.Configuration);
 Console.WriteLine("The app options are: " + System.Text.Json.JsonSerializer.Serialize(appOptions));
 builder.Services.AddScoped<ILibraryService, LibraryService>();
 builder.Services.AddScoped<ISeeder, Seeder>();
+builder.Services.AddExceptionHandler<MyGlobalExceptionHandler>();
 builder.Services.AddDbContext<MyDbContext>(opt =>
 {
     opt.UseNpgsql(appOptions.DbConnectionString );
