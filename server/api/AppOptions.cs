@@ -4,6 +4,6 @@ namespace api;
 
 public class AppOptions
 {
-    [MinLength(1)]
+    [Required][MinLength(1)]
     public string DbConnectionString { get; set; }
 }

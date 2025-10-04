@@ -1,44 +1,62 @@
+using System.ComponentModel.DataAnnotations;
 using api;
 using api.Services;
 using dataAccess.Models;
-//using Infrastructure.Postgres.Scaffolding;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
-var appOptions = builder.Services.AddAppOptions(builder.Configuration);
-Console.WriteLine("The app options are: " + System.Text.Json.JsonSerializer.Serialize(appOptions));
-builder.Services.AddScoped<ILibraryService, LibraryService>();
-builder.Services.AddScoped<ISeeder, Seeder>();
-builder.Services.AddExceptionHandler<MyGlobalExceptionHandler>();
-builder.Services.AddDbContext<MyDbContext>(opt =>
+public class Program
 {
-    opt.UseNpgsql(appOptions.DbConnectionString );
-}); 
-
-builder.Services.AddControllers();
-builder.Services.AddOpenApiDocument(); 
-builder.Services.AddCors();
-
-var app = builder.Build();
-app.UseCors(config => config.
-    AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowAnyOrigin()
-    .SetIsOriginAllowed(x => true));
-
-app.MapControllers();
-app.UseOpenApi();
-app.UseSwaggerUi();
-app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts").GetAwaiter().GetResult();
-if (app.Environment.IsDevelopment())
-{
-    using (var scope = app.Services.CreateScope())
+    public static void ConfigureServices(IServiceCollection services)
     {
-        var seeder = scope.ServiceProvider.GetService<ISeeder>();
-        if (seeder != null)
+        services.AddSingleton<AppOptions>(provider =>
         {
-            seeder.Seed();
+            var configuration = provider.GetRequiredService<IConfiguration>();
+            var appOptions = new AppOptions();
+            configuration.GetSection(nameof(AppOptions)).Bind(appOptions);
+            return appOptions;
+        });
+
+        services.AddDbContext<MyDbContext>((services, opt) =>
+        {
+            opt.UseNpgsql(services.GetRequiredService<AppOptions>().DbConnectionString);
+        }); 
+        services.AddControllers();
+        services.AddOpenApiDocument(); 
+        services.AddCors();
+        services.AddScoped<ILibraryService, LibraryService>();
+        services.AddScoped<ISeeder, Seeder>();
+        services.AddExceptionHandler<MyGlobalExceptionHandler>();
+    }
+
+    public static void Main()
+    {
+        var builder = WebApplication.CreateBuilder();
+        ConfigureServices(builder.Services);
+        var app = builder.Build();
+        var appOptions = app.Services.GetRequiredService<AppOptions>();
+        //trigger the DataAnnotations validations for AppOptions properties
+        Validator.ValidateObject(appOptions, new ValidationContext(appOptions), true);
+        
+        app.UseOpenApi();
+        app.UseSwaggerUi();
+        app.UseCors(config => config.
+            AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin()
+            .SetIsOriginAllowed(x => true));
+        app.MapControllers();
+        app.GenerateApiClientsFromOpenApi("/../../client/src/generated-ts-client.ts").GetAwaiter().GetResult();
+        if (app.Environment.IsDevelopment())
+        {
+            using (var scope = app.Services.CreateScope())
+            {
+                var seeder = scope.ServiceProvider.GetService<ISeeder>();
+                if (seeder != null)
+                {
+                    seeder.Seed();
+                }
+            }
         }
+        app.Run();
     }
 }
-app.Run();
