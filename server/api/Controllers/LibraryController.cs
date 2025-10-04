@@ -49,4 +49,17 @@ public class LibraryController(ILibraryService libraryService) : ControllerBase
     {
         return await libraryService.CreateAuthor(dto);
     }
+    
+    [HttpPut(nameof(UpdateAuthor))]
+    public async Task<AuthorDto> UpdateAuthor([FromBody]UpdateAuthorDto dto)
+    {
+        return await libraryService.UpdateAuthor(dto);  
+    }
+    
+    [HttpDelete(nameof(DeleteAuthor))]
+    public async Task<AuthorDto> DeleteAuthor([FromQuery] string authorId)
+    {
+        return await libraryService.DeleteAuthor(authorId);
+    }
+    
 }

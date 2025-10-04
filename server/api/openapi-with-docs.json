@@ -200,6 +200,68 @@
           }
         }
       }
+    },
+    "/UpdateAuthor": {
+      "put": {
+        "tags": [
+          "Library"
+        ],
+        "operationId": "Library_UpdateAuthor",
+        "requestBody": {
+          "x-name": "dto",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAuthorDto"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DeleteAuthor": {
+      "delete": {
+        "tags": [
+          "Library"
+        ],
+        "operationId": "Library_DeleteAuthor",
+        "parameters": [
+          {
+            "name": "authorId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthorDto"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -349,6 +411,24 @@
         ],
         "properties": {
           "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "UpdateAuthorDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "authorIdForLookupReference",
+          "newName"
+        ],
+        "properties": {
+          "authorIdForLookupReference": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newName": {
             "type": "string",
             "minLength": 1
           }

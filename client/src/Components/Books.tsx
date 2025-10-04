@@ -28,6 +28,22 @@ function GenresIcon() {
         </svg>
     );
 }
+function PencilIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  d="M15.232 5.232a2.5 2.5 0 1 1 3.536 3.536L7.5 20.036 3 21l.964-4.5L15.232 5.232z" />
+        </svg>
+    );
+}
+function TrashIcon() {
+    return (
+        <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+        </svg>
+    );
+}
 
 /*Chips (selected items) which used in top create bar and edit model*/
 function Chips({
@@ -135,18 +151,10 @@ function BookRow({ book, onEdit, onDelete, authorNameById }: BookRowProps) {
 
             <div className="flex items-center gap-2">
                 <button className="btn btn-ghost btn-sm" onClick={() => onEdit(book)} aria-label="Edit book">
-                    {/* pencil */}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M15.232 5.232a2.5 2.5 0 1 1 3.536 3.536L7.5 20.036 3 21l.964-4.5L15.232 5.232z" />
-                    </svg>
+                    <PencilIcon />
                 </button>
                 <button className="btn btn-ghost btn-sm text-error" onClick={() => onDelete(book)} aria-label="Delete book">
-                    {/* trash */}
-                    <svg xmlns="http://www.w3.org/2000/svg" className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
-                              d="M19 7l-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                    </svg>
+                    <TrashIcon />
                 </button>
             </div>
         </li>
@@ -191,7 +199,7 @@ function EditBookModal({
                         className="input input-bordered"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Title"
+                        placeholder="Book Title"
                     />
                     <input
                         className="input input-bordered"
@@ -263,7 +271,7 @@ export default function Books() {
     const [authors] = useAtom(allAuthorsAtom);
     const [genres] = useAtom(allGenresAtom);
 
-    const [createBookForm, setCreateBookForm] = useState<CreateBookDto>({ title: "My amazing new book", pages: 1 });
+    const [createBookForm, setCreateBookForm] = useState<CreateBookDto>({ title: "Book Title", pages: 1 });
     const [selectedAuthorIds, setSelectedAuthorIds] = useState<string[]>([]);
     const [selectedGenreIds, setSelectedGenreIds] = useState<string[]>([]);
 
@@ -352,7 +360,7 @@ export default function Books() {
                     <div className="flex flex-wrap items-center gap-2">
                         <input
                             value={createBookForm.title}
-                            placeholder="Title"
+                            placeholder="Book Title"
                             className="input input-bordered flex-1 min-w-0"
                             onChange={(e) => setCreateBookForm({ ...createBookForm, title: e.target.value })}
                         />

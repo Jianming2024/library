@@ -89,5 +89,12 @@ public class LibraryService(MyDbContext dbctx) : ILibraryService
         await dbctx.SaveChangesAsync();
         return new AuthorDto(author);
     }
+    public async Task<AuthorDto> DeleteAuthor(string id)
+    {
+        var author = dbctx.Authors.First(a => a.Id == id);
+        dbctx.Authors.Remove(author);
+        await dbctx.SaveChangesAsync();
+        return new AuthorDto(author);       
+    }
     
 }

@@ -12,6 +12,6 @@ public interface ILibraryService
     Task<BookDto> UpdateBook(UpdateBookDto dto);
     Task<BookDto> DeleteBook(string id);
     Task<AuthorDto> CreateAuthor(CreateAuthorDto dto);
-    /*Task<AuthorDto> UpdateAuthor(UpdateAuthorDto dto);
-    Task<AuthorDto> DeleteAuthor(string id);*/
+    Task<AuthorDto> UpdateAuthor(UpdateAuthorDto dto);
+    Task<AuthorDto> DeleteAuthor(string id);
 }
